@@ -6,11 +6,15 @@ CREATE TABLE pubmed_abstracts (
   journalTitle VARCHAR(1000),
   docAbstract TEXT,
   createDate DATETIME,
+  updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (pmid)
 );
 
 CREATE TABLE doctors(
   doctorName VARCHAR(100),
+  updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (doctorName)
 );
 
@@ -106,3 +110,4 @@ INSERT INTO doctors (doctorName) VALUES ("Adam Pourcho");
 INSERT INTO doctors (doctorName) VALUES ("Michael Fredericson");
 INSERT INTO doctors (doctorName) VALUES ("Maryam Niapour");
 INSERT INTO doctors (doctorName) VALUES ("John Cianca");
+
