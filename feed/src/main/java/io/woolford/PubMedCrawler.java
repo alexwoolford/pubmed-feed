@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import io.woolford.database.entity.DoctorRecord;
 import io.woolford.database.entity.PubMedAbstractRecord;
 import io.woolford.database.mapper.DbMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +23,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -43,13 +42,13 @@ class PubMedCrawler {
     @PostConstruct
     private void crawlPubMed() throws IOException, IllegalAccessException, InstantiationException {
 
-        for (String doctorName : getDoctorNameArray()){
+        for (DoctorRecord doctorRecord : dbMapper.getDoctorsRecordList()){
 
             MultiValueMap<String, String> esearchParams = new LinkedMultiValueMap<String, String>();
             esearchParams.add("db", "pubmed");
             esearchParams.add("retmode", "json");
             esearchParams.add("retmax", "1000");
-            esearchParams.add("term", URLEncoder.encode(doctorName));
+            esearchParams.add("term", URLEncoder.encode(doctorRecord.getDoctorName()));
 
             UriComponents esearchUriComponents = UriComponentsBuilder.fromHttpUrl("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi").queryParams(esearchParams).build();
             URL esearchUrl = new URL(esearchUriComponents.toUriString());
@@ -104,9 +103,7 @@ class PubMedCrawler {
                     logger.log(java.util.logging.Level.WARNING, e.getMessage());
                 }
 
-                logger.info(doctorName + ": " + id + "; efetchUrl: " + efetchUrl + "; " + efetchJsonNode);
-
-//                System.exit(0);
+                logger.info(doctorRecord.getDoctorName() + ": " + id + "; efetchUrl: " + efetchUrl + "; " + efetchJsonNode);
 
             }
 
@@ -145,11 +142,6 @@ class PubMedCrawler {
         bufferedReader.close();
 
         return response.toString();
-    }
-
-    private String[] getDoctorNameArray() throws IOException {
-        String[] doctorNameArray = new String(Files.readAllBytes(Paths.get("feed/src/main/resources/doctor_names.txt"))).split("\n");
-        return doctorNameArray;
     }
 
     private void pubMedWait(){

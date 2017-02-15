@@ -1,11 +1,18 @@
 package io.woolford.database.mapper;
 
+import io.woolford.database.entity.DoctorRecord;
 import io.woolford.database.entity.PubMedAbstractRecord;
 import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public interface DbMapper {
+
+    @Select("SELECT doctorName FROM pubmed_feed.doctors")
+    List<DoctorRecord> getDoctorsRecordList();
 
     @Insert("INSERT INTO pubmed_feed.pubmed_abstracts (" +
             "   pmid,                                  " +
@@ -24,6 +31,6 @@ public interface DbMapper {
             "     journalTitle=#{journalTitle},        " +
             "     createDate=#{createDate},            " +
             "     docAbstract=#{docAbstract}")
-    public void insertPubMedAbstractRecord(PubMedAbstractRecord pubMedAbstractRecord);
+    void insertPubMedAbstractRecord(PubMedAbstractRecord pubMedAbstractRecord);
 
 }
