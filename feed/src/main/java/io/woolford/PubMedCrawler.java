@@ -7,11 +7,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.mongodb.Mongo;
 import io.woolford.database.entity.DoctorRecord;
 import io.woolford.database.entity.PubMedAbstractRecord;
 import io.woolford.database.mapper.DbMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -43,6 +45,9 @@ class PubMedCrawler {
     @Autowired
     DbMapper dbMapper;
 
+    @Autowired
+    MongoTemplate mongoTemplate;
+
     @PostConstruct
     private void crawlPubMed() throws IOException, IllegalAccessException, InstantiationException {
 
@@ -59,6 +64,9 @@ class PubMedCrawler {
 
             JsonNode esearchJsonNode = getJsonNodeFromUrlJson(esearchUrl);
 
+            mongoTemplate.insert(esearchJsonNode.toString(), "doctor-name" );
+
+            //TODO: consider using Jolt instead
             ObjectMapper mapper = new ObjectMapper();
             String idListString = esearchJsonNode.get("esearchresult").get("idlist").toString();
             List<String> idList = mapper.readValue(idListString, new TypeReference<List<String>>(){});
@@ -78,7 +86,9 @@ class PubMedCrawler {
 
                 String efetchJson = getJsonNodeFromUrlXml(efetchUrl).toString();
 
-                InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("doc_abstract_jolt.json");
+                mongoTemplate.insert(efetchJson, "pmid-search" );
+
+                InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("doc-abstract-jolt.json");
 
                 List docAbstractJoltJson = JsonUtils.jsonToList(
                         new BufferedReader(new InputStreamReader(inputStream))
