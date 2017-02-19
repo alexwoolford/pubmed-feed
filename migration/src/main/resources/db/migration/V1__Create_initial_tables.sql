@@ -3,9 +3,12 @@ USE pubmed_feed;
 CREATE TABLE pubmed_abstracts (
   pmid INT NOT NULL,
   title VARCHAR(1000),
-  journalTitle VARCHAR(1000),
-  docAbstract TEXT,
+  abstractText VARCHAR(4000),
+  journal VARCHAR(1000),
   createDate DATETIME,
+  lastname VARCHAR(100),
+  forename VARCHAR(100),
+  initials VARCHAR(10),
   updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (pmid)

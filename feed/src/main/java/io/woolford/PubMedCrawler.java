@@ -1,6 +1,8 @@
 package io.woolford;
 
 
+import com.bazaarvoice.jolt.Chainr;
+import com.bazaarvoice.jolt.JsonUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -27,6 +30,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Component
 class PubMedCrawler {
@@ -72,38 +76,29 @@ class PubMedCrawler {
                 UriComponents efetchUriComponents = UriComponentsBuilder.fromHttpUrl("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi").queryParams(efetchParams).build();
                 URL efetchUrl = new URL(efetchUriComponents.toUriString());
 
-                JsonNode efetchJsonNode = getJsonNodeFromUrlXml(efetchUrl);
+                String efetchJson = getJsonNodeFromUrlXml(efetchUrl).toString();
 
-                // TODO: handle case where the JsonNode below is null.
-                JsonNode citationJsonNode = efetchJsonNode.get("PubmedArticle").get("MedlineCitation");
+                InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("doc_abstract_jolt.json");
 
-                String title = String.valueOf(citationJsonNode.get("Article").get("ArticleTitle")).replaceAll("^\"|\"$", "");;
-                String journalTitle = String.valueOf(citationJsonNode.get("Article").get("Journal").get("Title")).replaceAll("^\"|\"$", "");
+                List docAbstractJoltJson = JsonUtils.jsonToList(
+                        new BufferedReader(new InputStreamReader(inputStream))
+                                .lines()
+                                .parallel()
+                                .collect(Collectors.joining("\n"))
+                );
 
-                JsonNode docAbstractJsonNode = null;
+                Chainr docAbstractJoltChainr = Chainr.fromSpec(docAbstractJoltJson);
 
-                try {
-                    // TODO: capture authors for each PubMed record in separate table
-                    docAbstractJsonNode = citationJsonNode.get("Article").get("Abstract").get("AbstractText").get("");
+                Object transformedOutput = docAbstractJoltChainr.transform(JsonUtils.jsonToMap(efetchJson));
 
-                    JsonNode createDateJsonNode = citationJsonNode.get("DateCreated");
-                    Date createDate = new GregorianCalendar(createDateJsonNode.get("Year").asInt(), createDateJsonNode.get("Month").asInt(), createDateJsonNode.get("Day").asInt()).getTime();
+                PubMedAbstractRecord pubMedAbstractRecord = mapper.convertValue(transformedOutput, PubMedAbstractRecord.class);
 
-                    PubMedAbstractRecord pubMedAbstractRecord = new PubMedAbstractRecord();
-                    pubMedAbstractRecord.setPmid(Integer.parseInt(id));
-                    pubMedAbstractRecord.setTitle(title);
-                    pubMedAbstractRecord.setJournalTitle(journalTitle);
-                    pubMedAbstractRecord.setCreateDate(createDate);
-                    pubMedAbstractRecord.setDocAbstract(String.valueOf(docAbstractJsonNode).replaceAll("^\"|\"$", ""));
+                Date createDate = new GregorianCalendar(pubMedAbstractRecord.getCreateYear(), pubMedAbstractRecord.getCreateMonth(), pubMedAbstractRecord.getCreateDay()).getTime();
+                pubMedAbstractRecord.setCreateDate(createDate);
 
-                    dbMapper.insertPubMedAbstractRecord(pubMedAbstractRecord);
-                    // TODO: capture deltas so it's not necessary to re-evaluate all the records
+                dbMapper.insertPubMedAbstractRecord(pubMedAbstractRecord);
 
-                } catch (Exception e) {
-                    logger.log(java.util.logging.Level.WARNING, e.getMessage());
-                }
-
-                logger.info(doctorRecord.getDoctorName() + ": " + id + "; efetchUrl: " + efetchUrl + "; " + efetchJsonNode);
+                logger.info(transformedOutput.toString());
 
             }
 

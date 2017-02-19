@@ -17,20 +17,29 @@ public interface DbMapper {
     @Insert("INSERT INTO pubmed_feed.pubmed_abstracts (" +
             "   pmid,                                  " +
             "   title,                                 " +
-            "   journalTitle,                          " +
+            "   abstractText,                          " +
+            "   journal,                               " +
             "   createDate,                            " +
-            "   docAbstract)                           " +
+            "   lastname,                              " +
+            "   forename,                              " +
+            "   initials)                              " +
             "VALUES                                    " +
             "    (#{pmid},                             " +
             "     #{title},                            " +
-            "     #{journalTitle},                     " +
+            "     #{abstractText},                     " +
+            "     #{journal},                          " +
             "     #{createDate},                       " +
-            "     #{docAbstract})                      " +
+            "     #{lastname},                         " +
+            "     #{forename},                         " +
+            "     #{initials})                         " +
             "ON DUPLICATE KEY UPDATE                   " +
             "     title=#{title},                      " +
-            "     journalTitle=#{journalTitle},        " +
+            "     abstractText=#{abstractText},        " +
+            "     journal=#{journal},                  " +
             "     createDate=#{createDate},            " +
-            "     docAbstract=#{docAbstract}")
+            "     lastname=#{lastname},                " +
+            "     forename=#{forename},                " +
+            "     initials=#{initials}                 ")
     void insertPubMedAbstractRecord(PubMedAbstractRecord pubMedAbstractRecord);
 
 }

@@ -1,0 +1,35 @@
+[{
+  "operation": "shift",
+  "spec": {
+    "PubmedArticle": {
+      "MedlineCitation": {
+        "PMID": {
+          "": "pmid"
+        },
+        "*": {
+          "ArticleTitle": "title",
+          "Abstract": {
+            "AbstractText": {
+              "": "abstractText"
+            }
+          },
+          "Journal": {
+            "Title": "journal"
+          },
+          "ArticleDate": {
+            "Year": "createYear",
+            "Month": "createMonth",
+            "Day": "createDay"
+          },
+          "AuthorList": {
+            "Author": {
+              "LastName": "lastname",
+              "ForeName": "forename",
+              "Initials": "initials"
+            }
+          }
+        }
+      }
+    }
+  }
+}]
