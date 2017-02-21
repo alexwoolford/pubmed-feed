@@ -2,6 +2,7 @@ package io.woolford.database.mapper;
 
 import io.woolford.database.entity.DoctorRecord;
 import io.woolford.database.entity.PubMedAbstractRecord;
+import io.woolford.database.entity.PubMedAbstractRestRecord;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Component;
@@ -41,5 +42,17 @@ public interface DbMapper {
             "     forename=#{forename},                " +
             "     initials=#{initials}                 ")
     void insertPubMedAbstractRecord(PubMedAbstractRecord pubMedAbstractRecord);
+
+    @Select("SELECT           " +
+            "   pmid,         " +
+            "   title,        " +
+            "   abstractText, " +
+            "   journal,      " +
+            "   createDate,   " +
+            "   lastname,     " +
+            "   forename,     " +
+            "   initials      " +
+            "FROM pubmed_feed.pubmed_abstracts")
+    List<PubMedAbstractRestRecord> getPubMedAbstractRestRecordList();
 
 }

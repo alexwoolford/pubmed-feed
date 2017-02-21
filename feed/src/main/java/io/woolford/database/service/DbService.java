@@ -3,6 +3,7 @@ package io.woolford.database.service;
 
 import io.woolford.database.entity.DoctorRecord;
 import io.woolford.database.entity.PubMedAbstractRecord;
+import io.woolford.database.entity.PubMedAbstractRestRecord;
 import io.woolford.database.mapper.DbMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,10 @@ public class DbService {
 
     public List<DoctorRecord> getDoctorsRecordList(){
         return dbMapper.getDoctorsRecordList();
+    }
+
+    public List<PubMedAbstractRestRecord> getPubMedAbstractRestRecordList() {
+        return dbMapper.getPubMedAbstractRestRecordList();
     }
 
 }
