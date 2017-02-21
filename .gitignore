@@ -2,3 +2,4 @@
 feed/.idea/
 target/
 *.iml
+*.pyc

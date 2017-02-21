@@ -7,13 +7,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.mongodb.Mongo;
 import io.woolford.database.entity.DoctorRecord;
 import io.woolford.database.entity.PubMedAbstractRecord;
 import io.woolford.database.mapper.DbMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -42,11 +42,20 @@ class PubMedCrawler {
     @Value("${pubmed.request.interval.millis}")
     private long pubMedRequestIntervalMillis;
 
+    @Value("${mongodb.enable}")
+    private Boolean mongodbEnable;
+
+    @Value("${kafka.enable}")
+    private Boolean kafkaEnable;
+
     @Autowired
     DbMapper dbMapper;
 
     @Autowired
     MongoTemplate mongoTemplate;
+
+    @Autowired
+    private KafkaTemplate<Integer, String> kafkaTemplate;
 
     @PostConstruct
     private void crawlPubMed() throws IOException, IllegalAccessException, InstantiationException {
@@ -59,12 +68,15 @@ class PubMedCrawler {
             esearchParams.add("retmax", "1000");
             esearchParams.add("term", URLEncoder.encode(doctorRecord.getDoctorName()));
 
+            // TODO: fix random issue where eutils.ncbi.nlm.nih.gov returns 'Unknown host'
             UriComponents esearchUriComponents = UriComponentsBuilder.fromHttpUrl("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi").queryParams(esearchParams).build();
             URL esearchUrl = new URL(esearchUriComponents.toUriString());
 
             JsonNode esearchJsonNode = getJsonNodeFromUrlJson(esearchUrl);
 
-            mongoTemplate.insert(esearchJsonNode.toString(), "doctor-name" );
+            if (mongodbEnable){
+                mongoTemplate.insert(esearchJsonNode.toString(), "doctor-name" );
+            }
 
             //TODO: consider using Jolt instead
             ObjectMapper mapper = new ObjectMapper();
@@ -86,7 +98,13 @@ class PubMedCrawler {
 
                 String efetchJson = getJsonNodeFromUrlXml(efetchUrl).toString();
 
-                mongoTemplate.insert(efetchJson, "pmid-search" );
+                if (mongodbEnable){
+                    mongoTemplate.insert(efetchJson, "pmid-search" );
+                }
+
+                if (kafkaEnable){
+                    kafkaTemplate.send("pmid-search", efetchJson);
+                }
 
                 InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("doc-abstract-jolt.json");
 
