@@ -1,6 +1,7 @@
 # PubMed feed
 
 This project monitors publications on PubMed for a number of doctors. There are three modules:
+
 1. `migration`: the `feed` application reads a list of doctors are read from a MySQL table and persist abstracts of publications returned by searching for doctors in that list to MySQL.
 2. `feed`: 
 3. `dev_utils`: 

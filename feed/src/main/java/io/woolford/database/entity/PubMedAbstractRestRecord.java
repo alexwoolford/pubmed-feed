@@ -1,8 +1,6 @@
 package io.woolford.database.entity;
 
 
-import java.util.Date;
-
 public class PubMedAbstractRestRecord {
 
     private int pmid;
