@@ -19,3 +19,4 @@ The list of doctors are read from a MySQL table (see the `migration` module).
 
 1. capture all the authors for each paper
 2. FreeMarker template to generate HTML
+3. use [swagger.io](http://swagger.io/) to document the RESTful services

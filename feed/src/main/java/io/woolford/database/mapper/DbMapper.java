@@ -1,6 +1,7 @@
 package io.woolford.database.mapper;
 
 import io.woolford.database.entity.DoctorRecord;
+import io.woolford.database.entity.PmidEmailRecord;
 import io.woolford.database.entity.PubMedAbstractRecord;
 import io.woolford.database.entity.PubMedAbstractRestRecord;
 import org.apache.ibatis.annotations.Insert;
@@ -54,5 +55,28 @@ public interface DbMapper {
             "   initials      " +
             "FROM pubmed_feed.pubmed_abstracts")
     List<PubMedAbstractRestRecord> getPubMedAbstractRestRecordList();
+
+    @Insert("INSERT INTO pubmed_feed.email_sent (" +
+            "   pmid,                            " +
+            "   email)                           " +
+            "VALUES                              " +
+            "    (#{pmid},                       " +
+            "     #{email})                      ")
+    void insertPmidEmailRecord(PmidEmailRecord pmidEmailRecord);
+
+    @Select("SELECT                                     " +
+            "   pubmed_abstracts.pmid,                  " +
+            "   title,                                  " +
+            "   abstractText,                           " +
+            "   journal,                                " +
+            "   createDate,                             " +
+            "   lastname,                               " +
+            "   forename,                               " +
+            "   initials                                " +
+            "FROM pubmed_feed.pubmed_abstracts          " +
+            "LEFT OUTER JOIN pubmed_feed.email_sent     " +
+            "ON pubmed_abstracts.pmid = email_sent.pmid " +
+            "WHERE email_sent.pmid IS NULL              ")
+    List<PubMedAbstractRecord> getPubMedAbstractEmailRecordList();
 
 }

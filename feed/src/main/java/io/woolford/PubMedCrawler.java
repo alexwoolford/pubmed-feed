@@ -21,6 +21,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,7 +58,8 @@ class PubMedCrawler {
     @Autowired
     private KafkaTemplate<Integer, String> kafkaTemplate;
 
-    @Scheduled(cron = "0 0 * * * *")
+//    @Scheduled(cron = "0 0 * * * *")
+    @PostConstruct
     private void crawlPubMed() throws IOException, IllegalAccessException, InstantiationException {
 
         for (DoctorRecord doctorRecord : dbMapper.getDoctorsRecordList()){
@@ -66,7 +68,7 @@ class PubMedCrawler {
             esearchParams.add("db", "pubmed");
             esearchParams.add("retmode", "json");
             esearchParams.add("retmax", "1000");
-            esearchParams.add("reldate", "60");
+            esearchParams.add("reldate", "10");
             esearchParams.add("term", URLEncoder.encode(doctorRecord.getDoctorName()));
 
             // TODO: fix random issue where eutils.ncbi.nlm.nih.gov returns 'Unknown host'
